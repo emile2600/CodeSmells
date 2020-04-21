@@ -1,4 +1,5 @@
-import java.text.ParseException;
+
+import java.util.ArrayList;
 
 public class Factuur {
 
@@ -12,11 +13,8 @@ public class Factuur {
      *   moet worden.
      */
     private Klant klant;
-    private FactuurRegel regel1;
-    private FactuurRegel regel2;
-    private FactuurRegel regel3;
-    private FactuurRegel regel4;
-    private FactuurRegel regel5;
+    private double totaalprijs = 0.0;
+    private ArrayList<FactuurRegel> regels = new ArrayList<>();
 
     /*
      * De factuur opent met de gegevens van een klant.
@@ -25,31 +23,55 @@ public class Factuur {
         System.out.format("%s%n%s%n%s  %s%n%n", naam, adres, postcode, woonplaats);
     }
 
-    /*
-     * De gehele factuur wordt op het scherm getoond.
-     */
-    public void maakFactuur (boolean buitenNederland) throws ParseException {
-
+    private String getBTWnummer(boolean buitenNederland){
         /*
          * De factuur moet gemakkelijk voor zowel een Nederlandse als een Belgische klant opgesteld kunnen
          * worden. Dat gebeurt op basis van de eerste twee letters van het BTW-nummer.
          */
-        String btwNummer;
-
         if (buitenNederland) {
-            btwNummer = "BE 0826882419";
+            return "BE 0826882419";
         }
-        else {
-            btwNummer = "NL 0826882419";
-        }
+        return  "NL 0826882419";
+    }
 
+    private void regelMaken() {
+        regels.add(new FactuurRegel("Product 1", 2.50, "20-04-2021"));
+        regels.add(new FactuurRegel("Product 2", 10.00, "20-04-2020"));
+        regels.add(new FactuurRegel("Product 3", 0.22, "08-04-2020"));
+        regels.add(new FactuurRegel("Product 4", 1.50, "08-04-2020"));
+        regels.add(new FactuurRegel("Product 5", 0.88, "21-03-2020"));
+    }
+
+    private void regelSetAantal(){
+        regels.get(0).setAantal(20, 1, 0.0, "");
+        regels.get(1).setAantal(1, 250, 0.0, "");
+        regels.get(2).setAantal(1000, 1, 0.0, "");
+        regels.get(3).setAantal(0, 0, 2.55, "kg");
+        regels.get(4).setAantal(1, 1, 0.0, "");
+    }
+
+    private void totaal(){
+        for (FactuurRegel regel : regels) {
+            totaalprijs += regel.getTotaalprijs();
+        }
+    }
+
+    private void regelPrint(){
+        for (FactuurRegel regel:regels) {
+            System.out.print(regel);
+        }
+    }
+
+    /*
+     * De gehele factuur wordt op het scherm getoond.
+     */
+    public void maakFactuur (boolean buitenNederland) {
         /*
          * Het totaalbedrag dat een klant moet betalen wordt op 0.0 geïnitialiseerd,
          * zodat alle bedragen (incl. kortingen) bij elkaar opgeteld kunnen worden.
          */
-        double totaalprijs = 0.0;
 
-        klant = new Klant ("De Haagse Hogeschool", "Johanna Westerdijkplein", 75, "", 2521, "EN", "DEN HAAG", btwNummer, Klant.OVERHEID);
+        klant = new Klant ("De Haagse Hogeschool", "Johanna Westerdijkplein", 75, "", 2521, "EN", "DEN HAAG", getBTWnummer(buitenNederland), Klant.OVERHEID);
 
         /*
          * Voor elke regel worden nu producten aangemaakt, waarvoor de gegevens voor
@@ -57,21 +79,9 @@ public class Factuur {
          * gewicht en eenheid voor dat gewicht (bijv. kg) apart worden ingesteld.
          * Op basis van deze gegevens wordt de totaalprijs bepaald.
          */
-        regel1 = new FactuurRegel("Product 1", 2.50, "20-04-2021");
-        regel1.setAantal (20, 1, 0.0, "");
-        totaalprijs += regel1.getTotaalprijs();
-        regel2 = new FactuurRegel("Product 2", 10.00, "20-04-2020");
-        regel2.setAantal(1, 250, 0.0, "");
-        totaalprijs += regel2.getTotaalprijs();
-        regel3 = new FactuurRegel("Product 3", 0.22, "08-04-2020");
-        regel3.setAantal(1000, 1, 0.0, "");
-        totaalprijs += regel3.getTotaalprijs();
-        regel4 = new FactuurRegel("Product 4", 1.50, "08-04-2020");
-        regel4.setAantal(0, 0, 2.55, "kg");
-        totaalprijs += regel4.getTotaalprijs();
-        regel5 = new FactuurRegel("Product 5", 0.88, "21-03-2020");
-        regel5.setAantal(1, 1, 0.0, "");
-        totaalprijs += regel5.getTotaalprijs();
+        regelMaken();
+        regelSetAantal();
+        totaal();
 
         /*
          * Bovenaan de factuur worden de gegevens van een klant getoond.
@@ -101,10 +111,7 @@ public class Factuur {
          * om zichtbaar te maken dat we de bedragen voor de factuurregels bij
          * elkaar optellen.
          */
-        System.out.print (regel1);
-        System.out.print (regel2);
-        System.out.print (regel3);
-        System.out.print (regel4);
+        regelPrint();
         System.out.format ("       %-39s   %8s  %7s  %9s%n", "", "", "", "_________ +");
 
         /*
